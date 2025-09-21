@@ -1,4 +1,4 @@
-import { API_CONFIG, StockApiResponse, Stock, LtpApiResponse, BuyOrderRequest, BuyOrderResponse, SellOrderRequest, SellOrderResponse, ActiveTradeData, ActiveTradesResponse } from '../config/api';
+import { API_CONFIG, StockApiResponse, Stock, LtpApiResponse, BuyOrderRequest, BuyOrderResponse, SellOrderRequest, SellOrderResponse, ActiveTradeData, ActiveTradesResponse, UserTransaction, UserTransactionsResponse, CloseOrderRequest, CloseOrderResponse } from '../config/api';
 
 class StockService {
   private baseUrl: string;
@@ -153,6 +153,62 @@ class StockService {
       return data;
     } catch (error) {
       console.error(`Error placing sell order for transaction ${transactionId}:`, error);
+      throw error;
+    }
+  }
+
+  // Fetch user transactions
+  async getUserTransactions(): Promise<UserTransaction[]> {
+    try {
+      const response = await fetch(`${API_CONFIG.NEW_BASE_URL}${API_CONFIG.ENDPOINTS.USER_TRANSACTIONS}`, {
+        method: 'GET',
+        headers: {
+          'accept': 'application/json',
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data: UserTransactionsResponse = await response.json();
+      return data;
+
+    } catch (error) {
+      console.error('Error fetching user transactions:', error);
+      throw error;
+    }
+  }
+
+  // Close order
+  async closeOrder(transactionId: string): Promise<CloseOrderResponse> {
+    try {
+      const closeOrderData: CloseOrderRequest = {
+        transaction_id: parseInt(transactionId)
+      };
+
+      const response = await fetch(`${API_CONFIG.NEW_BASE_URL}${API_CONFIG.ENDPOINTS.CLOSE_ORDER}`, {
+        method: 'POST',
+        headers: {
+          'accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(closeOrderData)
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data: CloseOrderResponse = await response.json();
+
+      if (!data.success) {
+        throw new Error(data.message || 'Failed to close order');
+      }
+
+      return data;
+    } catch (error) {
+      console.error(`Error closing order for transaction ${transactionId}:`, error);
       throw error;
     }
   }

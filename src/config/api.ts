@@ -1,12 +1,15 @@
 // API Configuration
 export const API_CONFIG = {
   BASE_URL: 'https://trade.durgaimpexmfu.in',
+  NEW_BASE_URL: 'https://gotecha.shop',
   ENDPOINTS: {
     STOCKS: '/api/equity/stocks',
     LTP: '/api/equity/ltp', // LTP endpoint base
     BUY_ORDER: '/api/equity/buy', // Buy order endpoint
     SELL_ORDER: '/api/equity/sell', // Sell order endpoint
     ACTIVE_TRADES: '/api/equity/active-trades', // Active trades endpoint
+    USER_TRANSACTIONS: '/api/trading/user-transactions', // New user transactions endpoint
+    CLOSE_ORDER: '/api/trading/close-order', // Close order endpoint
   }
 };
 
@@ -106,4 +109,42 @@ export interface Stock {
   token: string;
   price: number; // We'll need to get this from another API later
   change?: number; // Price change (optional, for display purposes)
+}
+
+// User Transactions API Types
+export interface ScriptDetails {
+  name: string;
+  logo: string;
+  lotSize: number;
+}
+
+export interface UserTransaction {
+  id: string;
+  currentPrice: number;
+  script: string;
+  status: string;
+  qty: number;
+  sellQty: number;
+  realizedPrice: number | null;
+  sellingPrice: number | null;
+  percentage: number | null;
+  buyingPrice: number;
+  target: number;
+  stopLoss: number;
+  createdAt: string;
+  scriptDetails: ScriptDetails;
+}
+
+export type UserTransactionsResponse = UserTransaction[];
+
+// Close Order API Types
+export interface CloseOrderRequest {
+  transaction_id: number;
+}
+
+export interface CloseOrderResponse {
+  success: boolean;
+  message: string;
+  data?: any;
+  statusCode: number;
 }
