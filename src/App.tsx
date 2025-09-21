@@ -11,58 +11,42 @@ import {
   CircularProgress,
   Alert,
   Chip,
-  Tab,
-  Tabs,
   CardContent,
   Button,
   Snackbar,
+  TextField,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Drawer,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material';
 import { 
   TrendingUp, 
-  Bell, 
   User,
   TrendingDown,
   Target,
   Shield,
+  Home,
+  List as ListIcon,
+  Settings,
+  Menu,
 } from 'lucide-react';
 import stockService from './services/stockService';
-import { UserTransaction } from './config/api';
+import { UserTransaction, WebhookRequest } from './config/api';
 
-interface TabPanelProps {
-  children?: React.ReactNode;
-  index: number;
-  value: number;
-}
+const drawerWidth = 240;
 
-function TabPanel(props: TabPanelProps) {
-  const { children, value, index, ...other } = props;
-
-  return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`simple-tabpanel-${index}`}
-      aria-labelledby={`simple-tab-${index}`}
-      {...other}
-    >
-      {value === index && (
-        <Box sx={{ p: 3 }}>
-          {children}
-        </Box>
-      )}
-    </div>
-  );
-}
-
-function a11yProps(index: number) {
-  return {
-    id: `simple-tab-${index}`,
-    'aria-controls': `simple-tabpanel-${index}`,
-  };
-}
 
 // Clean white theme for professional trading dashboard
-const theme = createTheme({
+const customTheme = createTheme({
   palette: {
     mode: 'light',
     primary: {
@@ -283,7 +267,11 @@ const TransactionCard: React.FC<{
 };
 
 function App() {
-  const [tabValue, setTabValue] = useState(0);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  
+  const [currentPage, setCurrentPage] = useState<'home' | 'all-orders' | 'settings'>('home');
+  const [mobileOpen, setMobileOpen] = useState(false);
   const [transactions, setTransactions] = useState<UserTransaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -291,6 +279,17 @@ function App() {
   const [toastOpen, setToastOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [toastSeverity, setToastSeverity] = useState<'success' | 'error'>('success');
+  
+  // Settings form state
+  const [webhookForm, setWebhookForm] = useState<WebhookRequest>({
+    script: 'NIFTY',
+    scriptType: 'index',
+    instrumentType: 'NSE',
+    timeframe: '3',
+    trend: 'CE',
+    strategy: 'EMA_CROSS_20_200'
+  });
+  const [webhookLoading, setWebhookLoading] = useState(false);
 
   // Fetch user transactions on component mount
   useEffect(() => {
@@ -311,8 +310,15 @@ function App() {
     fetchTransactions();
   }, []);
 
-  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
-    setTabValue(newValue);
+  const handleDrawerToggle = () => {
+    setMobileOpen(!mobileOpen);
+  };
+
+  const handlePageChange = (page: 'home' | 'all-orders' | 'settings') => {
+    setCurrentPage(page);
+    if (isMobile) {
+      setMobileOpen(false); // Close drawer on mobile after selection
+    }
   };
 
   // Function to refetch transactions
@@ -356,6 +362,34 @@ function App() {
     }
   };
 
+  // Handle webhook form submission
+  const handleWebhookSubmit = async () => {
+    try {
+      setWebhookLoading(true);
+      await stockService.sendWebhook(webhookForm);
+      
+      setToastMessage('Webhook sent successfully!');
+      setToastSeverity('success');
+      setToastOpen(true);
+      
+    } catch (error) {
+      console.error('Webhook failed:', error);
+      setToastMessage(error instanceof Error ? error.message : 'Failed to send webhook');
+      setToastSeverity('error');
+      setToastOpen(true);
+    } finally {
+      setWebhookLoading(false);
+    }
+  };
+
+  // Handle webhook form field changes
+  const handleWebhookFormChange = (field: keyof WebhookRequest, value: string) => {
+    setWebhookForm(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
   // Filter transactions based on tab
   const openTransactions = transactions.filter(t => t.status === 'OPEN');
   const allTransactions = transactions;
@@ -367,62 +401,164 @@ function App() {
   }, 0);
 
   return (
-    <ThemeProvider theme={theme}>
+    <ThemeProvider theme={customTheme}>
       <CssBaseline />
       <Box sx={{ 
+        display: 'flex',
         minHeight: '100vh',
         backgroundColor: '#f5f5f5',
-        position: 'relative'
       }}>
 
-        {/* Header - Keep TradeHub header same */}
-        <Box sx={{ 
-          position: 'relative', 
-          zIndex: 1,
-          p: 3,
-          backgroundColor: '#ffffff',
-          borderBottom: '1px solid #e0e0e0',
-          boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
-        }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', maxWidth: '1400px', mx: 'auto' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <Avatar sx={{ 
-                backgroundColor: '#1976d2',
-                mr: 2,
-                width: 48,
-                height: 48
-              }}>
-                <TrendingUp size={24} color="white" />
-              </Avatar>
-              <Box>
-                <Typography variant="h4" sx={{ mb: 0.5 }}>
-                  TradeHub
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Professional Trading Platform
-                </Typography>
-              </Box>
-            </Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <IconButton sx={{ 
-                backgroundColor: '#f5f5f5',
-                '&:hover': { backgroundColor: '#e0e0e0' }
-              }}>
-                <Bell size={20} />
-              </IconButton>
-              <IconButton sx={{ 
-                backgroundColor: '#f5f5f5',
-                '&:hover': { backgroundColor: '#e0e0e0' }
-              }}>
+        {/* Drawer */}
+        <Box
+          component="nav"
+          sx={{ width: { md: drawerWidth }, flexShrink: { md: 0 } }}
+        >
+          <Drawer
+            variant="temporary"
+            open={mobileOpen}
+            onClose={handleDrawerToggle}
+            ModalProps={{
+              keepMounted: true, // Better open performance on mobile.
+            }}
+            sx={{
+              display: { xs: 'block', md: 'none' },
+              '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
+            }}
+          >
+            <Box sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+                Navigation
+              </Typography>
+              <IconButton onClick={handleDrawerToggle} sx={{ display: { md: 'none' } }}>
                 <User size={20} />
               </IconButton>
             </Box>
-          </Box>
+            <List>
+              <ListItem disablePadding>
+                <ListItemButton
+                  selected={currentPage === 'home'}
+                  onClick={() => handlePageChange('home')}
+                >
+                  <ListItemIcon>
+                    <Home size={20} />
+                  </ListItemIcon>
+                  <ListItemText primary={`OPEN Orders (${openTransactions.length})`} />
+                </ListItemButton>
+              </ListItem>
+              <ListItem disablePadding>
+                <ListItemButton
+                  selected={currentPage === 'all-orders'}
+                  onClick={() => handlePageChange('all-orders')}
+                >
+                  <ListItemIcon>
+                    <ListIcon size={20} />
+                  </ListItemIcon>
+                  <ListItemText primary={`All Orders (${allTransactions.length})`} />
+                </ListItemButton>
+              </ListItem>
+              <ListItem disablePadding>
+                <ListItemButton
+                  selected={currentPage === 'settings'}
+                  onClick={() => handlePageChange('settings')}
+                >
+                  <ListItemIcon>
+                    <Settings size={20} />
+                  </ListItemIcon>
+                  <ListItemText primary="Settings" />
+                </ListItemButton>
+              </ListItem>
+            </List>
+          </Drawer>
+          
+          {/* Desktop Drawer */}
+          <Drawer
+            variant="permanent"
+            sx={{
+              display: { xs: 'none', md: 'block' },
+              '& .MuiDrawer-paper': { 
+                boxSizing: 'border-box', 
+                width: drawerWidth,
+                height: '100vh',
+              },
+            }}
+            open
+          >
+            <Box sx={{ p: 2, borderBottom: '1px solid #e0e0e0' }}>
+              <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+                Navigation
+              </Typography>
+            </Box>
+            <List>
+              <ListItem disablePadding>
+                <ListItemButton
+                  selected={currentPage === 'home'}
+                  onClick={() => handlePageChange('home')}
+                >
+                  <ListItemIcon>
+                    <Home size={20} />
+                  </ListItemIcon>
+                  <ListItemText primary={`OPEN Orders (${openTransactions.length})`} />
+                </ListItemButton>
+              </ListItem>
+              <ListItem disablePadding>
+                <ListItemButton
+                  selected={currentPage === 'all-orders'}
+                  onClick={() => handlePageChange('all-orders')}
+                >
+                  <ListItemIcon>
+                    <ListIcon size={20} />
+                  </ListItemIcon>
+                  <ListItemText primary={`All Orders (${allTransactions.length})`} />
+                </ListItemButton>
+              </ListItem>
+              <ListItem disablePadding>
+                <ListItemButton
+                  selected={currentPage === 'settings'}
+                  onClick={() => handlePageChange('settings')}
+                >
+                  <ListItemIcon>
+                    <Settings size={20} />
+                  </ListItemIcon>
+                  <ListItemText primary="Settings" />
+                </ListItemButton>
+              </ListItem>
+            </List>
+          </Drawer>
         </Box>
 
-        {/* Dashboard Content */}
-        <Box sx={{ position: 'relative', zIndex: 1, p: { xs: 2, sm: 3 }, maxWidth: '1200px', mx: 'auto' }}>
-          
+        {/* Main Content */}
+        <Box
+          component="main"
+          sx={{
+            flexGrow: 1,
+            p: { xs: 2, sm: 3 },
+            width: { md: `calc(100% - ${drawerWidth}px)` },
+            minHeight: '100vh',
+            position: 'relative',
+          }}
+        >
+          {/* Mobile Menu Button */}
+          {isMobile && (
+            <IconButton
+              onClick={handleDrawerToggle}
+              sx={{
+                position: 'fixed',
+                top: 16,
+                left: 16,
+                zIndex: 1300,
+                backgroundColor: 'primary.main',
+                color: 'white',
+                '&:hover': {
+                  backgroundColor: 'primary.dark',
+                },
+                boxShadow: 2,
+              }}
+            >
+              <Menu size={24} />
+            </IconButton>
+          )}
+
           {/* P&L Summary Card */}
           <Card sx={{ mb: 3, p: 3 }}>
             <Typography variant="h5" sx={{ mb: 2, fontWeight: 'bold' }}>
@@ -442,76 +578,186 @@ function App() {
             </Box>
           </Card>
 
-          {/* Tabs */}
-          <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
-            <Tabs value={tabValue} onChange={handleTabChange} aria-label="transaction tabs">
-              <Tab label={`OPEN Orders (${openTransactions.length})`} {...a11yProps(0)} />
-              <Tab label={`All Orders (${allTransactions.length})`} {...a11yProps(1)} />
-            </Tabs>
-          </Box>
+          {/* Page Content */}
+          {currentPage === 'home' && (
+            <>
+              {loading ? (
+                <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                  <CircularProgress />
+                </Box>
+              ) : error ? (
+                <Alert severity="error" sx={{ mb: 2 }}>
+                  {error}
+                </Alert>
+              ) : openTransactions.length === 0 ? (
+                <Box sx={{ textAlign: 'center', py: 4 }}>
+                  <Typography variant="h6" color="text.secondary">
+                    No open transactions
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Your open positions will appear here
+                  </Typography>
+                </Box>
+              ) : (
+                openTransactions.map((transaction) => (
+                  <TransactionCard 
+                    key={transaction.id} 
+                    transaction={transaction} 
+                    showDateTime={false}
+                    onExit={handleExitOrder}
+                    isExiting={exitingTransactions.has(transaction.id)}
+                    showStatus={false}
+                  />
+                ))
+              )}
+            </>
+          )}
 
-          {/* Tab Content */}
-          <TabPanel value={tabValue} index={0}>
-            {loading ? (
-              <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-                <CircularProgress />
-              </Box>
-            ) : error ? (
-              <Alert severity="error" sx={{ mb: 2 }}>
-                {error}
-              </Alert>
-            ) : openTransactions.length === 0 ? (
-              <Box sx={{ textAlign: 'center', py: 4 }}>
-                <Typography variant="h6" color="text.secondary">
-                  No open transactions
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Your open positions will appear here
-                </Typography>
-              </Box>
-            ) : (
-              openTransactions.map((transaction) => (
-                <TransactionCard 
-                  key={transaction.id} 
-                  transaction={transaction} 
-                  showDateTime={false}
-                  onExit={handleExitOrder}
-                  isExiting={exitingTransactions.has(transaction.id)}
-                  showStatus={false}
-                />
-              ))
-            )}
-          </TabPanel>
+          {currentPage === 'all-orders' && (
+            <>
+              {loading ? (
+                <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                  <CircularProgress />
+                </Box>
+              ) : error ? (
+                <Alert severity="error" sx={{ mb: 2 }}>
+                  {error}
+                </Alert>
+              ) : allTransactions.length === 0 ? (
+                <Box sx={{ textAlign: 'center', py: 4 }}>
+                  <Typography variant="h6" color="text.secondary">
+                    No transactions found
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Your trading history will appear here
+                  </Typography>
+                </Box>
+              ) : (
+                allTransactions.map((transaction) => (
+                  <TransactionCard 
+                    key={transaction.id} 
+                    transaction={transaction} 
+                    showDateTime={true}
+                    showStatus={true}
+                  />
+                ))
+              )}
+            </>
+          )}
 
-          <TabPanel value={tabValue} index={1}>
-            {loading ? (
-              <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-                <CircularProgress />
+          {currentPage === 'settings' && (
+            <Card sx={{ p: 3 }}>
+              <Typography variant="h5" sx={{ mb: 3, fontWeight: 'bold' }}>
+                Webhook Settings
+              </Typography>
+              
+              <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 3, mb: 3 }}>
+                {/* Script Dropdown */}
+                <FormControl fullWidth>
+                  <InputLabel>Script</InputLabel>
+                  <Select
+                    value={webhookForm.script}
+                    label="Script"
+                    onChange={(e) => handleWebhookFormChange('script', e.target.value)}
+                  >
+                    <MenuItem value="DMART">DMART</MenuItem>
+                    <MenuItem value="NIFTY">NIFTY</MenuItem>
+                  </Select>
+                </FormControl>
+
+                {/* Timeframe Dropdown */}
+                <FormControl fullWidth>
+                  <InputLabel>Timeframe</InputLabel>
+                  <Select
+                    value={webhookForm.timeframe}
+                    label="Timeframe"
+                    onChange={(e) => handleWebhookFormChange('timeframe', e.target.value)}
+                  >
+                    <MenuItem value="3">3</MenuItem>
+                    <MenuItem value="5">5</MenuItem>
+                  </Select>
+                </FormControl>
+
+                {/* Trend Dropdown */}
+                <FormControl fullWidth>
+                  <InputLabel>Trend</InputLabel>
+                  <Select
+                    value={webhookForm.trend}
+                    label="Trend"
+                    onChange={(e) => handleWebhookFormChange('trend', e.target.value)}
+                  >
+                    <MenuItem value="CE">CE</MenuItem>
+                    <MenuItem value="PE">PE</MenuItem>
+                  </Select>
+                </FormControl>
+
+                {/* Strategy Dropdown */}
+                <FormControl fullWidth>
+                  <InputLabel>Strategy</InputLabel>
+                  <Select
+                    value={webhookForm.strategy}
+                    label="Strategy"
+                    onChange={(e) => handleWebhookFormChange('strategy', e.target.value)}
+                  >
+                    <MenuItem value="EMA_CROSS_20_200">EMA_CROSS_20_200</MenuItem>
+                  </Select>
+                </FormControl>
               </Box>
-            ) : error ? (
-              <Alert severity="error" sx={{ mb: 2 }}>
-                {error}
-              </Alert>
-            ) : allTransactions.length === 0 ? (
-              <Box sx={{ textAlign: 'center', py: 4 }}>
-                <Typography variant="h6" color="text.secondary">
-                  No transactions found
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Your trading history will appear here
-                </Typography>
-              </Box>
-            ) : (
-              allTransactions.map((transaction) => (
-                <TransactionCard 
-                  key={transaction.id} 
-                  transaction={transaction} 
-                  showDateTime={true}
-                  showStatus={true}
+
+              {/* Read-only fields */}
+              <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 3, mb: 3 }}>
+                <TextField
+                  fullWidth
+                  label="Script Type"
+                  value={webhookForm.scriptType}
+                  InputProps={{ readOnly: true }}
+                  variant="outlined"
                 />
-              ))
-            )}
-          </TabPanel>
+                <TextField
+                  fullWidth
+                  label="Instrument Type"
+                  value={webhookForm.instrumentType}
+                  InputProps={{ readOnly: true }}
+                  variant="outlined"
+                />
+              </Box>
+
+              {/* Submit Button */}
+              <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+                <Button
+                  variant="contained"
+                  size="large"
+                  onClick={handleWebhookSubmit}
+                  disabled={webhookLoading}
+                  sx={{ 
+                    minWidth: 200,
+                    py: 1.5,
+                    fontSize: '1rem',
+                    fontWeight: 'bold'
+                  }}
+                >
+                  {webhookLoading ? (
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <CircularProgress size={20} color="inherit" />
+                      Sending...
+                    </Box>
+                  ) : (
+                    'Send Webhook'
+                  )}
+                </Button>
+              </Box>
+
+              {/* Current Configuration Display */}
+              <Box sx={{ mt: 4, p: 2, backgroundColor: '#f8f9fa', borderRadius: 2 }}>
+                <Typography variant="h6" sx={{ mb: 2, fontWeight: 'bold' }}>
+                  Current Configuration
+                </Typography>
+                <Box sx={{ fontFamily: 'monospace', fontSize: '0.875rem', whiteSpace: 'pre-wrap' }}>
+                  {JSON.stringify(webhookForm, null, 2)}
+                </Box>
+              </Box>
+            </Card>
+          )}
         </Box>
 
         {/* Toast Notification */}

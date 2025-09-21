@@ -1,4 +1,4 @@
-import { API_CONFIG, StockApiResponse, Stock, LtpApiResponse, BuyOrderRequest, BuyOrderResponse, SellOrderRequest, SellOrderResponse, ActiveTradeData, ActiveTradesResponse, UserTransaction, UserTransactionsResponse, CloseOrderRequest, CloseOrderResponse } from '../config/api';
+import { API_CONFIG, StockApiResponse, Stock, LtpApiResponse, BuyOrderRequest, BuyOrderResponse, SellOrderRequest, SellOrderResponse, ActiveTradeData, ActiveTradesResponse, UserTransaction, UserTransactionsResponse, CloseOrderRequest, CloseOrderResponse, WebhookRequest, WebhookResponse } from '../config/api';
 
 class StockService {
   private baseUrl: string;
@@ -209,6 +209,34 @@ class StockService {
       return data;
     } catch (error) {
       console.error(`Error closing order for transaction ${transactionId}:`, error);
+      throw error;
+    }
+  }
+
+  // Send webhook
+  async sendWebhook(webhookData: WebhookRequest): Promise<WebhookResponse> {
+    try {
+      const response = await fetch(`${API_CONFIG.NEW_BASE_URL}${API_CONFIG.ENDPOINTS.WEBHOOK}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(webhookData)
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data: WebhookResponse = await response.json();
+
+      if (!data.success) {
+        throw new Error(data.message || 'Failed to send webhook');
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error sending webhook:', error);
       throw error;
     }
   }

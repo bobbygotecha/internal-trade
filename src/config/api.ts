@@ -10,6 +10,7 @@ export const API_CONFIG = {
     ACTIVE_TRADES: '/api/equity/active-trades', // Active trades endpoint
     USER_TRANSACTIONS: '/api/trading/user-transactions', // New user transactions endpoint
     CLOSE_ORDER: '/api/trading/close-order', // Close order endpoint
+    WEBHOOK: '/api/trading/webhook', // Webhook endpoint
   }
 };
 
@@ -143,6 +144,23 @@ export interface CloseOrderRequest {
 }
 
 export interface CloseOrderResponse {
+  success: boolean;
+  message: string;
+  data?: any;
+  statusCode: number;
+}
+
+// Webhook API Types
+export interface WebhookRequest {
+  script: string;
+  scriptType: string;
+  instrumentType: string;
+  timeframe: string;
+  trend: string;
+  strategy: string;
+}
+
+export interface WebhookResponse {
   success: boolean;
   message: string;
   data?: any;
