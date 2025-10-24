@@ -921,8 +921,9 @@ function App() {
             disabled={refreshLoading}
             sx={{
               position: 'fixed',
-              top: 16,
-              right: 16,
+              bottom: { xs: 24, md: 'auto' },
+              top: { xs: 'auto', md: 16 },
+              right: { xs: 24, md: 16 },
               zIndex: 1300,
               backgroundColor: 'success.main',
               color: 'white',
@@ -933,7 +934,7 @@ function App() {
                 backgroundColor: 'success.light',
                 color: 'white',
               },
-              boxShadow: 2,
+              boxShadow: 3,
             }}
           >
             {refreshLoading ? (
