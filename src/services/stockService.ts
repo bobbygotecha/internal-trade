@@ -1,4 +1,4 @@
-import { API_CONFIG, StockApiResponse, Stock, LtpApiResponse, BuyOrderRequest, BuyOrderResponse, SellOrderRequest, SellOrderResponse, ActiveTradeData, ActiveTradesResponse, UserTransaction, UserTransactionsResponse, CloseOrderRequest, CloseOrderResponse, WebhookRequest, WebhookResponse } from '../config/api';
+import { API_CONFIG, StockApiResponse, Stock, LtpApiResponse, BuyOrderRequest, BuyOrderResponse, SellOrderRequest, SellOrderResponse, ActiveTradeData, ActiveTradesResponse, UserTransaction, UserTransactionsResponse, CloseOrderRequest, CloseOrderResponse, WebhookRequest, WebhookResponse, FuturesWebhookRequest, FuturesWebhookResponse, FuturesTransaction, FuturesTransactionsResponse, FuturesCloseOrderRequest, FuturesCloseOrderResponse, PnLData, PnLResponse } from '../config/api';
 
 class StockService {
   private baseUrl: string;
@@ -237,6 +237,124 @@ class StockService {
       return data;
     } catch (error) {
       console.error('Error sending webhook:', error);
+      throw error;
+    }
+  }
+
+  // ===== FUTURES TRADING METHODS =====
+
+  // Send futures webhook
+  async sendFuturesWebhook(webhookData: FuturesWebhookRequest): Promise<FuturesWebhookResponse> {
+    try {
+      const response = await fetch(`${API_CONFIG.NEW_BASE_URL}${API_CONFIG.ENDPOINTS.FUTURES_WEBHOOK}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(webhookData)
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data: FuturesWebhookResponse = await response.json();
+
+      if (!data.success) {
+        throw new Error(data.message || 'Failed to send futures webhook');
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error sending futures webhook:', error);
+      throw error;
+    }
+  }
+
+  // Get futures transactions
+  async getFuturesTransactions(userId: number = 1, limit: number = 100): Promise<FuturesTransaction[]> {
+    try {
+      const url = `${API_CONFIG.NEW_BASE_URL}${API_CONFIG.ENDPOINTS.FUTURES_TRANSACTIONS}?user_id=${userId}&limit=${limit}`;
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'accept': 'application/json',
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data: FuturesTransactionsResponse = await response.json();
+
+      if (!data.success) {
+        throw new Error('Failed to fetch futures transactions');
+      }
+
+      return data.data;
+    } catch (error) {
+      console.error('Error fetching futures transactions:', error);
+      throw error;
+    }
+  }
+
+  // Close futures order
+  async closeFuturesOrder(transactionId: string): Promise<FuturesCloseOrderResponse> {
+    try {
+      const closeOrderData: FuturesCloseOrderRequest = {
+        transaction_id: parseInt(transactionId)
+      };
+
+      const response = await fetch(`${API_CONFIG.NEW_BASE_URL}${API_CONFIG.ENDPOINTS.FUTURES_CLOSE_ORDER}`, {
+        method: 'POST',
+        headers: {
+          'accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(closeOrderData)
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data: FuturesCloseOrderResponse = await response.json();
+
+      if (!data.success) {
+        throw new Error(data.message || 'Failed to close futures order');
+      }
+
+      return data;
+    } catch (error) {
+      console.error(`Error closing futures order for transaction ${transactionId}:`, error);
+      throw error;
+    }
+  }
+
+  // Get futures P&L
+  async getFuturesPnL(): Promise<PnLData> {
+    try {
+      const response = await fetch(`${API_CONFIG.NEW_BASE_URL}${API_CONFIG.ENDPOINTS.FUTURES_PNL}`, {
+        method: 'GET',
+        headers: {
+          'accept': 'application/json',
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data: PnLResponse = await response.json();
+
+      if (!data.success) {
+        throw new Error(data.message || 'Failed to fetch futures P&L');
+      }
+
+      return data.data;
+    } catch (error) {
+      console.error('Error fetching futures P&L:', error);
       throw error;
     }
   }

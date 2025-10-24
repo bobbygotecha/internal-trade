@@ -11,6 +11,11 @@ export const API_CONFIG = {
     USER_TRANSACTIONS: '/api/trading/user-transactions', // New user transactions endpoint
     CLOSE_ORDER: '/api/trading/close-order', // Close order endpoint
     WEBHOOK: '/api/trading/webhook', // Webhook endpoint
+    // Futures endpoints
+    FUTURES_WEBHOOK: '/api/futures/webhook', // Futures webhook endpoint
+    FUTURES_TRANSACTIONS: '/api/futures/transactions', // Futures transactions endpoint
+    FUTURES_CLOSE_ORDER: '/api/futures/close-order', // Futures close order endpoint
+    FUTURES_PNL: '/api/futures/pnl', // Futures P&L endpoint
   }
 };
 
@@ -164,5 +169,71 @@ export interface WebhookResponse {
   success: boolean;
   message: string;
   data?: any;
+  statusCode: number;
+}
+
+// Futures Webhook API Types
+export interface FuturesWebhookRequest {
+  script: string;
+  scriptType: string;
+  instrumentType: string;
+  timeframe: string;
+  trend: string;
+  strategy: string;
+}
+
+export interface FuturesWebhookResponse {
+  success: boolean;
+  message: string;
+  data?: any;
+  statusCode: number;
+}
+
+// Futures Transaction Types
+export interface FuturesTransaction {
+  id: string;
+  symbol: string;
+  qty: number;
+  buying_price: number;
+  selling_price: number | null;
+  current_ltp: number;
+  target: number;
+  stop_loss: number;
+  status: 'OPEN' | 'CLOSED' | 'CANCELLED';
+  trade_type: 'BUY' | 'SELL';
+  order_id: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface FuturesTransactionsResponse {
+  success: boolean;
+  data: FuturesTransaction[];
+  count: number;
+}
+
+export interface FuturesCloseOrderRequest {
+  transaction_id: number;
+}
+
+export interface FuturesCloseOrderResponse {
+  success: boolean;
+  message: string;
+  data?: any;
+  statusCode: number;
+}
+
+// P&L API Types
+export interface PnLData {
+  totalPnL: number;
+  totalInvestment?: number;
+  totalCurrentValue?: number;
+  percentageChange?: number;
+}
+
+export interface PnLResponse {
+  success: boolean;
+  message: string;
+  data: PnLData;
   statusCode: number;
 }
