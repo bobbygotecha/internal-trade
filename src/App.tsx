@@ -34,14 +34,16 @@ import {
   TrendingDown,
   Target,
   Shield,
-  Home,
-  List as ListIcon,
   Settings,
   Menu,
   RefreshCw,
+  Activity,
+  FileText,
+  BarChart3,
+  History,
 } from 'lucide-react';
 import stockService from './services/stockService';
-import { UserTransaction, WebhookRequest, FuturesWebhookRequest, PnLData, FuturesTransaction } from './config/api';
+import { UserTransaction, WebhookRequest, FuturesWebhookRequest, FuturesTransaction } from './config/api';
 
 const drawerWidth = 240;
 
@@ -716,22 +718,32 @@ function App() {
           >
             <Box sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
-                Navigation
+                Trading Dashboard
               </Typography>
               <IconButton onClick={handleDrawerToggle} sx={{ display: { md: 'none' } }}>
                 <User size={20} />
               </IconButton>
             </Box>
             <List>
+              {/* Options Trading Section */}
+              <ListItem sx={{ px: 2, py: 1 }}>
+                <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 1 }}>
+                  Options Trading
+                </Typography>
+              </ListItem>
               <ListItem disablePadding>
                 <ListItemButton
                   selected={currentPage === 'home'}
                   onClick={() => handlePageChange('home')}
                 >
                   <ListItemIcon>
-                    <Home size={20} />
+                    <Activity size={20} />
                   </ListItemIcon>
-                  <ListItemText primary={`OPEN Orders (${openTransactions.length})`} />
+                  <ListItemText 
+                    primary="Active Positions" 
+                    secondary={`${openTransactions.length} open`}
+                    secondaryTypographyProps={{ variant: 'caption' }}
+                  />
                 </ListItemButton>
               </ListItem>
               <ListItem disablePadding>
@@ -740,42 +752,13 @@ function App() {
                   onClick={() => handlePageChange('all-orders')}
                 >
                   <ListItemIcon>
-                    <ListIcon size={20} />
+                    <History size={20} />
                   </ListItemIcon>
-                  <ListItemText primary={`All Orders (${allTransactions.length})`} />
-                </ListItemButton>
-              </ListItem>
-              <ListItem disablePadding>
-                <ListItemButton
-                  selected={currentPage === 'futures'}
-                  onClick={() => handlePageChange('futures')}
-                >
-                  <ListItemIcon>
-                    <TrendingUp size={20} />
-                  </ListItemIcon>
-                  <ListItemText primary={`Futures Orders (${openFuturesTransactions.length})`} />
-                </ListItemButton>
-              </ListItem>
-              <ListItem disablePadding>
-                <ListItemButton
-                  selected={currentPage === 'all-futures-orders'}
-                  onClick={() => handlePageChange('all-futures-orders')}
-                >
-                  <ListItemIcon>
-                    <ListIcon size={20} />
-                  </ListItemIcon>
-                  <ListItemText primary={`All Futures Orders (${futuresTransactions.length})`} />
-                </ListItemButton>
-              </ListItem>
-              <ListItem disablePadding>
-                <ListItemButton
-                  selected={currentPage === 'futures-settings'}
-                  onClick={() => handlePageChange('futures-settings')}
-                >
-                  <ListItemIcon>
-                    <Settings size={20} />
-                  </ListItemIcon>
-                  <ListItemText primary="Futures Settings" />
+                  <ListItemText 
+                    primary="Order History" 
+                    secondary={`${allTransactions.length} total`}
+                    secondaryTypographyProps={{ variant: 'caption' }}
+                  />
                 </ListItemButton>
               </ListItem>
               <ListItem disablePadding>
@@ -786,7 +769,55 @@ function App() {
                   <ListItemIcon>
                     <Settings size={20} />
                   </ListItemIcon>
-                  <ListItemText primary="Options Settings" />
+                  <ListItemText primary="Strategy Config" />
+                </ListItemButton>
+              </ListItem>
+
+              {/* Futures Trading Section */}
+              <ListItem sx={{ px: 2, py: 1, mt: 2 }}>
+                <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 1 }}>
+                  Futures Trading
+                </Typography>
+              </ListItem>
+              <ListItem disablePadding>
+                <ListItemButton
+                  selected={currentPage === 'futures'}
+                  onClick={() => handlePageChange('futures')}
+                >
+                  <ListItemIcon>
+                    <BarChart3 size={20} />
+                  </ListItemIcon>
+                  <ListItemText 
+                    primary="Active Positions" 
+                    secondary={`${openFuturesTransactions.length} open`}
+                    secondaryTypographyProps={{ variant: 'caption' }}
+                  />
+                </ListItemButton>
+              </ListItem>
+              <ListItem disablePadding>
+                <ListItemButton
+                  selected={currentPage === 'all-futures-orders'}
+                  onClick={() => handlePageChange('all-futures-orders')}
+                >
+                  <ListItemIcon>
+                    <FileText size={20} />
+                  </ListItemIcon>
+                  <ListItemText 
+                    primary="Order History" 
+                    secondary={`${futuresTransactions.length} total`}
+                    secondaryTypographyProps={{ variant: 'caption' }}
+                  />
+                </ListItemButton>
+              </ListItem>
+              <ListItem disablePadding>
+                <ListItemButton
+                  selected={currentPage === 'futures-settings'}
+                  onClick={() => handlePageChange('futures-settings')}
+                >
+                  <ListItemIcon>
+                    <Settings size={20} />
+                  </ListItemIcon>
+                  <ListItemText primary="Strategy Config" />
                 </ListItemButton>
               </ListItem>
             </List>
@@ -807,19 +838,29 @@ function App() {
           >
             <Box sx={{ p: 2, borderBottom: '1px solid #e0e0e0' }}>
               <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
-                Navigation
+                Trading Dashboard
               </Typography>
             </Box>
             <List>
+              {/* Options Trading Section */}
+              <ListItem sx={{ px: 2, py: 1 }}>
+                <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 1 }}>
+                  Options Trading
+                </Typography>
+              </ListItem>
               <ListItem disablePadding>
                 <ListItemButton
                   selected={currentPage === 'home'}
                   onClick={() => handlePageChange('home')}
                 >
                   <ListItemIcon>
-                    <Home size={20} />
+                    <Activity size={20} />
                   </ListItemIcon>
-                  <ListItemText primary={`OPEN Orders (${openTransactions.length})`} />
+                  <ListItemText 
+                    primary="Active Positions" 
+                    secondary={`${openTransactions.length} open`}
+                    secondaryTypographyProps={{ variant: 'caption' }}
+                  />
                 </ListItemButton>
               </ListItem>
               <ListItem disablePadding>
@@ -828,42 +869,13 @@ function App() {
                   onClick={() => handlePageChange('all-orders')}
                 >
                   <ListItemIcon>
-                    <ListIcon size={20} />
+                    <History size={20} />
                   </ListItemIcon>
-                  <ListItemText primary={`All Orders (${allTransactions.length})`} />
-                </ListItemButton>
-              </ListItem>
-              <ListItem disablePadding>
-                <ListItemButton
-                  selected={currentPage === 'futures'}
-                  onClick={() => handlePageChange('futures')}
-                >
-                  <ListItemIcon>
-                    <TrendingUp size={20} />
-                  </ListItemIcon>
-                  <ListItemText primary={`Futures Orders (${openFuturesTransactions.length})`} />
-                </ListItemButton>
-              </ListItem>
-              <ListItem disablePadding>
-                <ListItemButton
-                  selected={currentPage === 'all-futures-orders'}
-                  onClick={() => handlePageChange('all-futures-orders')}
-                >
-                  <ListItemIcon>
-                    <ListIcon size={20} />
-                  </ListItemIcon>
-                  <ListItemText primary={`All Futures Orders (${futuresTransactions.length})`} />
-                </ListItemButton>
-              </ListItem>
-              <ListItem disablePadding>
-                <ListItemButton
-                  selected={currentPage === 'futures-settings'}
-                  onClick={() => handlePageChange('futures-settings')}
-                >
-                  <ListItemIcon>
-                    <Settings size={20} />
-                  </ListItemIcon>
-                  <ListItemText primary="Futures Settings" />
+                  <ListItemText 
+                    primary="Order History" 
+                    secondary={`${allTransactions.length} total`}
+                    secondaryTypographyProps={{ variant: 'caption' }}
+                  />
                 </ListItemButton>
               </ListItem>
               <ListItem disablePadding>
@@ -874,7 +886,55 @@ function App() {
                   <ListItemIcon>
                     <Settings size={20} />
                   </ListItemIcon>
-                  <ListItemText primary="Options Settings" />
+                  <ListItemText primary="Strategy Config" />
+                </ListItemButton>
+              </ListItem>
+
+              {/* Futures Trading Section */}
+              <ListItem sx={{ px: 2, py: 1, mt: 2 }}>
+                <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 1 }}>
+                  Futures Trading
+                </Typography>
+              </ListItem>
+              <ListItem disablePadding>
+                <ListItemButton
+                  selected={currentPage === 'futures'}
+                  onClick={() => handlePageChange('futures')}
+                >
+                  <ListItemIcon>
+                    <BarChart3 size={20} />
+                  </ListItemIcon>
+                  <ListItemText 
+                    primary="Active Positions" 
+                    secondary={`${openFuturesTransactions.length} open`}
+                    secondaryTypographyProps={{ variant: 'caption' }}
+                  />
+                </ListItemButton>
+              </ListItem>
+              <ListItem disablePadding>
+                <ListItemButton
+                  selected={currentPage === 'all-futures-orders'}
+                  onClick={() => handlePageChange('all-futures-orders')}
+                >
+                  <ListItemIcon>
+                    <FileText size={20} />
+                  </ListItemIcon>
+                  <ListItemText 
+                    primary="Order History" 
+                    secondary={`${futuresTransactions.length} total`}
+                    secondaryTypographyProps={{ variant: 'caption' }}
+                  />
+                </ListItemButton>
+              </ListItem>
+              <ListItem disablePadding>
+                <ListItemButton
+                  selected={currentPage === 'futures-settings'}
+                  onClick={() => handlePageChange('futures-settings')}
+                >
+                  <ListItemIcon>
+                    <Settings size={20} />
+                  </ListItemIcon>
+                  <ListItemText primary="Strategy Config" />
                 </ListItemButton>
               </ListItem>
             </List>
