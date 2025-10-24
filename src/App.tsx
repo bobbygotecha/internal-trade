@@ -576,9 +576,7 @@ function App() {
         await refetchTransactions();
       }
       
-      setToastMessage('Data refreshed successfully!');
-      setToastSeverity('success');
-      setToastOpen(true);
+      // No success toast - silent refresh on success
     } catch (error) {
       setToastMessage('Failed to refresh data');
       setToastSeverity('error');
