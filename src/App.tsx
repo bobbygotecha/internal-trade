@@ -416,7 +416,7 @@ function App() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   
-  const [currentPage, setCurrentPage] = useState<'home' | 'all-orders' | 'settings' | 'futures' | 'futures-settings'>('home');
+  const [currentPage, setCurrentPage] = useState<'home' | 'all-orders' | 'settings' | 'futures' | 'all-futures-orders' | 'futures-settings'>('home');
   const [mobileOpen, setMobileOpen] = useState(false);
   const [transactions, setTransactions] = useState<UserTransaction[]>([]);
   const [futuresTransactions, setFuturesTransactions] = useState<FuturesTransaction[]>([]);
@@ -478,7 +478,7 @@ function App() {
         
         // Fetch futures transactions
         try {
-          const fetchedFuturesTransactions = await stockService.getFuturesTransactions();
+          const fetchedFuturesTransactions = await stockService.getFuturesTransactions(1, 200);
           setFuturesTransactions(fetchedFuturesTransactions);
           
           // Calculate futures P&L from transactions
@@ -515,7 +515,7 @@ function App() {
     setMobileOpen(!mobileOpen);
   };
 
-  const handlePageChange = (page: 'home' | 'all-orders' | 'settings' | 'futures' | 'futures-settings') => {
+  const handlePageChange = (page: 'home' | 'all-orders' | 'settings' | 'futures' | 'all-futures-orders' | 'futures-settings') => {
     setCurrentPage(page);
     if (isMobile) {
       setMobileOpen(false); // Close drawer on mobile after selection
@@ -543,7 +543,7 @@ function App() {
   const refetchFuturesTransactions = async () => {
     try {
       setFuturesLoading(true);
-      const fetchedFuturesTransactions = await stockService.getFuturesTransactions();
+      const fetchedFuturesTransactions = await stockService.getFuturesTransactions(1, 200);
       setFuturesTransactions(fetchedFuturesTransactions);
       
       // Recalculate futures P&L
@@ -569,7 +569,7 @@ function App() {
     try {
       setRefreshLoading(true);
       
-      if (currentPage === 'futures' || currentPage === 'futures-settings') {
+      if (currentPage === 'futures' || currentPage === 'all-futures-orders' || currentPage === 'futures-settings') {
         await refetchFuturesTransactions();
       } else {
         // For options pages (home, all-orders, settings)
@@ -682,7 +682,7 @@ function App() {
 
   // Determine which P&L to show based on current page
   const getCurrentPnL = () => {
-    if (currentPage === 'futures' || currentPage === 'futures-settings') {
+    if (currentPage === 'futures' || currentPage === 'all-futures-orders' || currentPage === 'futures-settings') {
       return futuresPnL;
     }
     return optionsPnL; // Default to options P&L for home, all-orders, settings
@@ -760,6 +760,17 @@ function App() {
               </ListItem>
               <ListItem disablePadding>
                 <ListItemButton
+                  selected={currentPage === 'all-futures-orders'}
+                  onClick={() => handlePageChange('all-futures-orders')}
+                >
+                  <ListItemIcon>
+                    <ListIcon size={20} />
+                  </ListItemIcon>
+                  <ListItemText primary={`All Futures Orders (${futuresTransactions.length})`} />
+                </ListItemButton>
+              </ListItem>
+              <ListItem disablePadding>
+                <ListItemButton
                   selected={currentPage === 'futures-settings'}
                   onClick={() => handlePageChange('futures-settings')}
                 >
@@ -833,6 +844,17 @@ function App() {
                     <TrendingUp size={20} />
                   </ListItemIcon>
                   <ListItemText primary={`Futures Orders (${openFuturesTransactions.length})`} />
+                </ListItemButton>
+              </ListItem>
+              <ListItem disablePadding>
+                <ListItemButton
+                  selected={currentPage === 'all-futures-orders'}
+                  onClick={() => handlePageChange('all-futures-orders')}
+                >
+                  <ListItemIcon>
+                    <ListIcon size={20} />
+                  </ListItemIcon>
+                  <ListItemText primary={`All Futures Orders (${futuresTransactions.length})`} />
                 </ListItemButton>
               </ListItem>
               <ListItem disablePadding>
@@ -924,7 +946,7 @@ function App() {
           {/* P&L Summary Card */}
           <Card sx={{ mb: 3, p: 3 }}>
             <Typography variant="h5" sx={{ mb: 2, fontWeight: 'bold' }}>
-              {currentPage === 'futures' || currentPage === 'futures-settings' ? 'Futures P&L' : 'Options P&L'}
+              {currentPage === 'futures' || currentPage === 'all-futures-orders' || currentPage === 'futures-settings' ? 'Futures P&L' : 'Options P&L'}
             </Typography>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               {pnlLoading ? (
@@ -1153,6 +1175,34 @@ function App() {
                       showStatus={false}
                     />
                   ))
+              )}
+            </>
+          )}
+
+          {currentPage === 'all-futures-orders' && (
+            <>
+              {futuresLoading ? (
+                <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                  <CircularProgress />
+                </Box>
+              ) : futuresTransactions.length === 0 ? (
+                <Box sx={{ textAlign: 'center', py: 4 }}>
+                  <Typography variant="h6" color="text.secondary">
+                    No futures transactions found
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Your futures trading history will appear here
+                  </Typography>
+                </Box>
+              ) : (
+                futuresTransactions.map((transaction) => (
+                  <FuturesTransactionCard 
+                    key={transaction.id} 
+                    transaction={transaction} 
+                    showDateTime={true}
+                    showStatus={true}
+                  />
+                ))
               )}
             </>
           )}
