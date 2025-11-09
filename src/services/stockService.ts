@@ -1,4 +1,4 @@
-import { API_CONFIG, StockApiResponse, Stock, LtpApiResponse, BuyOrderRequest, BuyOrderResponse, SellOrderRequest, SellOrderResponse, ActiveTradeData, ActiveTradesResponse, UserTransaction, UserTransactionsResponse, CloseOrderRequest, CloseOrderResponse, WebhookRequest, WebhookResponse, FuturesWebhookRequest, FuturesWebhookResponse, FuturesTransaction, FuturesTransactionsResponse, FuturesCloseOrderRequest, FuturesCloseOrderResponse, PnLData, PnLResponse } from '../config/api';
+import { API_CONFIG, StockApiResponse, Stock, LtpApiResponse, BuyOrderRequest, BuyOrderResponse, SellOrderRequest, SellOrderResponse, ActiveTradeData, ActiveTradesResponse, UserTransaction, UserTransactionsResponse, CloseOrderRequest, CloseOrderResponse, WebhookRequest, WebhookResponse, FuturesWebhookRequest, FuturesWebhookResponse, FuturesTransaction, FuturesTransactionsResponse, FuturesCloseOrderResponse, PnLData, PnLResponse } from '../config/api';
 
 class StockService {
   private baseUrl: string;
