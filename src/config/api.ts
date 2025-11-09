@@ -14,7 +14,7 @@ export const API_CONFIG = {
     // Futures endpoints
     FUTURES_WEBHOOK: '/api/futures/webhook', // Futures webhook endpoint
     FUTURES_TRANSACTIONS: '/api/futures/transactions', // Futures transactions endpoint
-    FUTURES_CLOSE_ORDER: '/api/futures/close-order', // Futures close order endpoint
+    FUTURES_CLOSE_POSITION: '/api/futures/close-position', // Futures close position endpoint (ID in URL)
     FUTURES_PNL: '/api/futures/pnl', // Futures P&L endpoint
   }
 };

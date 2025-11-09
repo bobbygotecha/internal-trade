@@ -418,7 +418,7 @@ function App() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   
-  const [currentPage, setCurrentPage] = useState<'home' | 'all-orders' | 'settings' | 'futures' | 'all-futures-orders' | 'futures-settings'>('home');
+  const [currentPage, setCurrentPage] = useState<'home' | 'all-orders' | 'settings' | 'futures' | 'all-futures-orders' | 'futures-settings'>('futures');
   const [mobileOpen, setMobileOpen] = useState(false);
   const [transactions, setTransactions] = useState<UserTransaction[]>([]);
   const [futuresTransactions, setFuturesTransactions] = useState<FuturesTransaction[]>([]);
@@ -426,6 +426,7 @@ function App() {
   const [futuresLoading, setFuturesLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [exitingTransactions, setExitingTransactions] = useState<Set<string>>(new Set());
+  const [exitingFuturesTransactions, setExitingFuturesTransactions] = useState<Set<string>>(new Set());
   const [toastOpen, setToastOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [toastSeverity, setToastSeverity] = useState<'success' | 'error'>('success');
@@ -619,6 +620,37 @@ function App() {
     }
   };
 
+  // Handle exit futures order
+  const handleExitFuturesOrder = async (transactionId: string) => {
+    try {
+      // Add transaction to exiting set
+      setExitingFuturesTransactions(prev => new Set(prev).add(transactionId));
+      
+      await stockService.closeFuturesOrder(transactionId);
+      
+      // Show success toast
+      setToastMessage('Futures position closed successfully!');
+      setToastSeverity('success');
+      setToastOpen(true);
+      
+      // Refetch futures transactions to get updated data
+      await refetchFuturesTransactions();
+      
+    } catch (error) {
+      console.error('Exit futures order failed:', error);
+      setToastMessage(error instanceof Error ? error.message : 'Failed to close futures position');
+      setToastSeverity('error');
+      setToastOpen(true);
+    } finally {
+      // Remove transaction from exiting set
+      setExitingFuturesTransactions(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(transactionId);
+        return newSet;
+      });
+    }
+  };
+
   // Handle webhook form submission
   const handleWebhookSubmit = async () => {
     try {
@@ -725,56 +757,8 @@ function App() {
               </IconButton>
             </Box>
             <List>
-              {/* Options Trading Section */}
-              <ListItem sx={{ px: 2, py: 1 }}>
-                <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 1 }}>
-                  Options Trading
-                </Typography>
-              </ListItem>
-              <ListItem disablePadding>
-                <ListItemButton
-                  selected={currentPage === 'home'}
-                  onClick={() => handlePageChange('home')}
-                >
-                  <ListItemIcon>
-                    <Activity size={20} />
-                  </ListItemIcon>
-                  <ListItemText 
-                    primary="Active Positions" 
-                    secondary={`${openTransactions.length} open`}
-                    secondaryTypographyProps={{ variant: 'caption' }}
-                  />
-                </ListItemButton>
-              </ListItem>
-              <ListItem disablePadding>
-                <ListItemButton
-                  selected={currentPage === 'all-orders'}
-                  onClick={() => handlePageChange('all-orders')}
-                >
-                  <ListItemIcon>
-                    <History size={20} />
-                  </ListItemIcon>
-                  <ListItemText 
-                    primary="Order History" 
-                    secondary={`${allTransactions.length} total`}
-                    secondaryTypographyProps={{ variant: 'caption' }}
-                  />
-                </ListItemButton>
-              </ListItem>
-              <ListItem disablePadding>
-                <ListItemButton
-                  selected={currentPage === 'settings'}
-                  onClick={() => handlePageChange('settings')}
-                >
-                  <ListItemIcon>
-                    <Settings size={20} />
-                  </ListItemIcon>
-                  <ListItemText primary="Strategy Config" />
-                </ListItemButton>
-              </ListItem>
-
               {/* Futures Trading Section */}
-              <ListItem sx={{ px: 2, py: 1, mt: 2 }}>
+              <ListItem sx={{ px: 2, py: 1 }}>
                 <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 1 }}>
                   Futures Trading
                 </Typography>
@@ -813,6 +797,54 @@ function App() {
                 <ListItemButton
                   selected={currentPage === 'futures-settings'}
                   onClick={() => handlePageChange('futures-settings')}
+                >
+                  <ListItemIcon>
+                    <Settings size={20} />
+                  </ListItemIcon>
+                  <ListItemText primary="Strategy Config" />
+                </ListItemButton>
+              </ListItem>
+
+              {/* Options Trading Section */}
+              <ListItem sx={{ px: 2, py: 1, mt: 2 }}>
+                <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 1 }}>
+                  Options Trading
+                </Typography>
+              </ListItem>
+              <ListItem disablePadding>
+                <ListItemButton
+                  selected={currentPage === 'home'}
+                  onClick={() => handlePageChange('home')}
+                >
+                  <ListItemIcon>
+                    <Activity size={20} />
+                  </ListItemIcon>
+                  <ListItemText 
+                    primary="Active Positions" 
+                    secondary={`${openTransactions.length} open`}
+                    secondaryTypographyProps={{ variant: 'caption' }}
+                  />
+                </ListItemButton>
+              </ListItem>
+              <ListItem disablePadding>
+                <ListItemButton
+                  selected={currentPage === 'all-orders'}
+                  onClick={() => handlePageChange('all-orders')}
+                >
+                  <ListItemIcon>
+                    <History size={20} />
+                  </ListItemIcon>
+                  <ListItemText 
+                    primary="Order History" 
+                    secondary={`${allTransactions.length} total`}
+                    secondaryTypographyProps={{ variant: 'caption' }}
+                  />
+                </ListItemButton>
+              </ListItem>
+              <ListItem disablePadding>
+                <ListItemButton
+                  selected={currentPage === 'settings'}
+                  onClick={() => handlePageChange('settings')}
                 >
                   <ListItemIcon>
                     <Settings size={20} />
@@ -842,56 +874,8 @@ function App() {
               </Typography>
             </Box>
             <List>
-              {/* Options Trading Section */}
-              <ListItem sx={{ px: 2, py: 1 }}>
-                <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 1 }}>
-                  Options Trading
-                </Typography>
-              </ListItem>
-              <ListItem disablePadding>
-                <ListItemButton
-                  selected={currentPage === 'home'}
-                  onClick={() => handlePageChange('home')}
-                >
-                  <ListItemIcon>
-                    <Activity size={20} />
-                  </ListItemIcon>
-                  <ListItemText 
-                    primary="Active Positions" 
-                    secondary={`${openTransactions.length} open`}
-                    secondaryTypographyProps={{ variant: 'caption' }}
-                  />
-                </ListItemButton>
-              </ListItem>
-              <ListItem disablePadding>
-                <ListItemButton
-                  selected={currentPage === 'all-orders'}
-                  onClick={() => handlePageChange('all-orders')}
-                >
-                  <ListItemIcon>
-                    <History size={20} />
-                  </ListItemIcon>
-                  <ListItemText 
-                    primary="Order History" 
-                    secondary={`${allTransactions.length} total`}
-                    secondaryTypographyProps={{ variant: 'caption' }}
-                  />
-                </ListItemButton>
-              </ListItem>
-              <ListItem disablePadding>
-                <ListItemButton
-                  selected={currentPage === 'settings'}
-                  onClick={() => handlePageChange('settings')}
-                >
-                  <ListItemIcon>
-                    <Settings size={20} />
-                  </ListItemIcon>
-                  <ListItemText primary="Strategy Config" />
-                </ListItemButton>
-              </ListItem>
-
               {/* Futures Trading Section */}
-              <ListItem sx={{ px: 2, py: 1, mt: 2 }}>
+              <ListItem sx={{ px: 2, py: 1 }}>
                 <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 1 }}>
                   Futures Trading
                 </Typography>
@@ -930,6 +914,54 @@ function App() {
                 <ListItemButton
                   selected={currentPage === 'futures-settings'}
                   onClick={() => handlePageChange('futures-settings')}
+                >
+                  <ListItemIcon>
+                    <Settings size={20} />
+                  </ListItemIcon>
+                  <ListItemText primary="Strategy Config" />
+                </ListItemButton>
+              </ListItem>
+
+              {/* Options Trading Section */}
+              <ListItem sx={{ px: 2, py: 1, mt: 2 }}>
+                <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 1 }}>
+                  Options Trading
+                </Typography>
+              </ListItem>
+              <ListItem disablePadding>
+                <ListItemButton
+                  selected={currentPage === 'home'}
+                  onClick={() => handlePageChange('home')}
+                >
+                  <ListItemIcon>
+                    <Activity size={20} />
+                  </ListItemIcon>
+                  <ListItemText 
+                    primary="Active Positions" 
+                    secondary={`${openTransactions.length} open`}
+                    secondaryTypographyProps={{ variant: 'caption' }}
+                  />
+                </ListItemButton>
+              </ListItem>
+              <ListItem disablePadding>
+                <ListItemButton
+                  selected={currentPage === 'all-orders'}
+                  onClick={() => handlePageChange('all-orders')}
+                >
+                  <ListItemIcon>
+                    <History size={20} />
+                  </ListItemIcon>
+                  <ListItemText 
+                    primary="Order History" 
+                    secondary={`${allTransactions.length} total`}
+                    secondaryTypographyProps={{ variant: 'caption' }}
+                  />
+                </ListItemButton>
+              </ListItem>
+              <ListItem disablePadding>
+                <ListItemButton
+                  selected={currentPage === 'settings'}
+                  onClick={() => handlePageChange('settings')}
                 >
                   <ListItemIcon>
                     <Settings size={20} />
@@ -1232,6 +1264,8 @@ function App() {
                       transaction={transaction} 
                       showDateTime={false}
                       showStatus={false}
+                      onExit={handleExitFuturesOrder}
+                      isExiting={exitingFuturesTransactions.has(transaction.id)}
                     />
                   ))
               )}

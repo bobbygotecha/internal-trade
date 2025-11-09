@@ -299,20 +299,15 @@ class StockService {
     }
   }
 
-  // Close futures order
+  // Close futures position
   async closeFuturesOrder(transactionId: string): Promise<FuturesCloseOrderResponse> {
     try {
-      const closeOrderData: FuturesCloseOrderRequest = {
-        transaction_id: parseInt(transactionId)
-      };
-
-      const response = await fetch(`${API_CONFIG.NEW_BASE_URL}${API_CONFIG.ENDPOINTS.FUTURES_CLOSE_ORDER}`, {
+      const response = await fetch(`${API_CONFIG.NEW_BASE_URL}${API_CONFIG.ENDPOINTS.FUTURES_CLOSE_POSITION}/${transactionId}`, {
         method: 'POST',
         headers: {
-          'accept': 'application/json',
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(closeOrderData)
+        body: ''
       });
 
       if (!response.ok) {
@@ -322,12 +317,12 @@ class StockService {
       const data: FuturesCloseOrderResponse = await response.json();
 
       if (!data.success) {
-        throw new Error(data.message || 'Failed to close futures order');
+        throw new Error(data.message || 'Failed to close futures position');
       }
 
       return data;
     } catch (error) {
-      console.error(`Error closing futures order for transaction ${transactionId}:`, error);
+      console.error(`Error closing futures position for transaction ${transactionId}:`, error);
       throw error;
     }
   }
