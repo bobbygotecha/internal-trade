@@ -1034,30 +1034,31 @@ function App() {
             )}
           </IconButton>
 
-          {/* P&L Summary Card */}
-          <Card sx={{ mb: 3, p: 3 }}>
-            <Typography variant="h5" sx={{ mb: 2, fontWeight: 'bold' }}>
-              {currentPage === 'futures' || currentPage === 'all-futures-orders' || currentPage === 'futures-settings' ? 'Futures P&L' : 'Options P&L'}
-            </Typography>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              {pnlLoading ? (
-                <CircularProgress size={24} />
-              ) : (
-                <>
-                  {currentPnL >= 0 ? <TrendingUp size={24} color="#4caf50" /> : <TrendingDown size={24} color="#f44336" />}
-                  <Typography 
-                    variant="h3" 
-                    sx={{ 
-                      fontWeight: 'bold',
-                      color: currentPnL >= 0 ? 'success.main' : 'error.main'
-                    }}
-                  >
-                    {currentPnL >= 0 ? '+' : ''}₹{currentPnL.toFixed(2)}
-                  </Typography>
-                </>
-              )}
-            </Box>
-          </Card>
+          {(currentPage !== 'home' && currentPage !== 'futures') && (
+            <Card sx={{ mb: 3, p: 3 }}>
+              <Typography variant="h5" sx={{ mb: 2, fontWeight: 'bold' }}>
+                {currentPage === 'all-futures-orders' || currentPage === 'futures-settings' ? 'Futures P&L' : 'Options P&L'}
+              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                {pnlLoading ? (
+                  <CircularProgress size={24} />
+                ) : (
+                  <>
+                    {currentPnL >= 0 ? <TrendingUp size={24} color="#4caf50" /> : <TrendingDown size={24} color="#f44336" />}
+                    <Typography 
+                      variant="h3" 
+                      sx={{ 
+                        fontWeight: 'bold',
+                        color: currentPnL >= 0 ? 'success.main' : 'error.main'
+                      }}
+                    >
+                      {currentPnL >= 0 ? '+' : ''}₹{currentPnL.toFixed(2)}
+                    </Typography>
+                  </>
+                )}
+              </Box>
+            </Card>
+          )}
 
           {/* Page Content */}
           {currentPage === 'home' && (
