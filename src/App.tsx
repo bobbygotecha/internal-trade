@@ -1257,18 +1257,45 @@ function App() {
                   </Typography>
                 </Box>
               ) : (
-                futuresTransactions
-                  .filter(t => t.status === 'OPEN')
-                  .map((transaction) => (
-                    <FuturesTransactionCard 
-                      key={transaction.id} 
-                      transaction={transaction} 
-                      showDateTime={false}
-                      showStatus={false}
-                      onExit={handleExitFuturesOrder}
-                      isExiting={exitingFuturesTransactions.has(transaction.id)}
-                    />
-                  ))
+                <>
+                  {futuresTransactions.filter(t => t.status === 'OPEN' && !t.order_id?.startsWith('PAPER_')).length > 0 && (
+                    <Box sx={{ mb: 3 }}>
+                      <Typography variant="h6" sx={{ mb: 1, fontWeight: 'bold' }}>
+                        Live Trades
+                      </Typography>
+                      {futuresTransactions
+                        .filter(t => t.status === 'OPEN' && !t.order_id?.startsWith('PAPER_'))
+                        .map((transaction) => (
+                          <FuturesTransactionCard 
+                            key={transaction.id} 
+                            transaction={transaction} 
+                            showDateTime={false}
+                            showStatus={false}
+                            onExit={handleExitFuturesOrder}
+                            isExiting={exitingFuturesTransactions.has(transaction.id)}
+                          />
+                        ))}
+                    </Box>
+                  )}
+
+                  {futuresTransactions.filter(t => t.status === 'OPEN' && t.order_id?.startsWith('PAPER_')).length > 0 && (
+                    <Box>
+                      <Typography variant="h6" sx={{ mb: 1, fontWeight: 'bold' }}>
+                        Paper Trades
+                      </Typography>
+                      {futuresTransactions
+                        .filter(t => t.status === 'OPEN' && t.order_id?.startsWith('PAPER_'))
+                        .map((transaction) => (
+                          <FuturesTransactionCard 
+                            key={transaction.id} 
+                            transaction={transaction} 
+                            showDateTime={false}
+                            showStatus={false}
+                          />
+                        ))}
+                    </Box>
+                  )}
+                </>
               )}
             </>
           )}
