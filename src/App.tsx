@@ -1318,6 +1318,8 @@ function App() {
                   >
                     <MenuItem value="DMART">DMART</MenuItem>
                     <MenuItem value="NIFTY">NIFTY</MenuItem>
+                    <MenuItem value="POLYCAB">POLYCAB</MenuItem>
+                    <MenuItem value="RVNL">RVNL</MenuItem>
                   </Select>
                 </FormControl>
 
@@ -1357,6 +1359,8 @@ function App() {
                     onChange={(e) => handleFuturesWebhookFormChange('strategy', e.target.value)}
                   >
                     <MenuItem value="EMA_CROSS_200">EMA_CROSS_200</MenuItem>
+                    <MenuItem value="EMA_CROSS_9_100">EMA_CROSS_9_100</MenuItem>
+                    <MenuItem value="EMA_CROSS_9_50">EMA_CROSS_9_50</MenuItem>
                   </Select>
                 </FormControl>
               </Box>
