@@ -1204,6 +1204,7 @@ function App() {
                     label="Strategy"
                     onChange={(e) => handleWebhookFormChange('strategy', e.target.value)}
                   >
+                    <MenuItem value="TEST_BOBBY">TEST_BOBBY</MenuItem>
                     <MenuItem value="EMA_CROSS_20_200">EMA_CROSS_20_200</MenuItem>
                   </Select>
                 </FormControl>
@@ -1404,6 +1405,7 @@ function App() {
                     label="Strategy"
                     onChange={(e) => handleFuturesWebhookFormChange('strategy', e.target.value)}
                   >
+                    <MenuItem value="TEST_BOBBY">TEST_BOBBY</MenuItem>
                     <MenuItem value="EMA_CROSS_200">EMA_CROSS_200</MenuItem>
                     <MenuItem value="EMA_CROSS_20_200">EMA_CROSS_20_200</MenuItem>
                     <MenuItem value="EMA_CROSS_9_100">EMA_CROSS_9_100</MenuItem>
