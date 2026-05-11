@@ -28,6 +28,7 @@ import {
   useMediaQuery,
   useTheme,
 } from '@mui/material';
+import { Link } from 'react-router-dom';
 import { 
   TrendingUp, 
   User,
@@ -433,10 +434,10 @@ function App() {
   
   // Settings form state
   const [webhookForm, setWebhookForm] = useState<WebhookRequest>({
-    script: 'NIFTY',
+    script: 'LODHA',
     scriptType: 'index',
     instrumentType: 'NSE',
-    timeframe: '3',
+    timeframe: '15',
     trend: 'CE',
     strategy: 'EMA_CROSS_20_200'
   });
@@ -444,7 +445,7 @@ function App() {
 
   // Futures Settings form state
   const [futuresWebhookForm, setFuturesWebhookForm] = useState<FuturesWebhookRequest>({
-    script: 'NIFTY',
+    script: 'LODHA',
     scriptType: 'index',
     instrumentType: 'NSE',
     timeframe: '15',
@@ -853,6 +854,19 @@ function App() {
                 </ListItemButton>
               </ListItem>
             </List>
+            <Box sx={{ px: 2, py: 2, borderTop: '1px solid #e0e0e0' }}>
+              <Typography
+                component={Link}
+                to="/anshul"
+                variant="body2"
+                onClick={() => {
+                  if (isMobile) handleDrawerToggle();
+                }}
+                sx={{ color: 'primary.main', textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}
+              >
+                GROW · Anshul →
+              </Typography>
+            </Box>
           </Drawer>
           
           {/* Desktop Drawer */}
@@ -970,6 +984,16 @@ function App() {
                 </ListItemButton>
               </ListItem>
             </List>
+            <Box sx={{ px: 2, py: 2, borderTop: '1px solid #e0e0e0' }}>
+              <Typography
+                component={Link}
+                to="/anshul"
+                variant="body2"
+                sx={{ color: 'primary.main', textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}
+              >
+                GROW · Anshul →
+              </Typography>
+            </Box>
           </Drawer>
         </Box>
 
@@ -1142,8 +1166,8 @@ function App() {
                     label="Script"
                     onChange={(e) => handleWebhookFormChange('script', e.target.value)}
                   >
-                    <MenuItem value="DMART">DMART</MenuItem>
-                    <MenuItem value="NIFTY">NIFTY</MenuItem>
+                    <MenuItem value="LODHA">LODHA</MenuItem>
+                    <MenuItem value="POLYCAB">POLYCAB</MenuItem>
                   </Select>
                 </FormControl>
 
@@ -1155,8 +1179,7 @@ function App() {
                     label="Timeframe"
                     onChange={(e) => handleWebhookFormChange('timeframe', e.target.value)}
                   >
-                    <MenuItem value="3">3</MenuItem>
-                    <MenuItem value="5">5</MenuItem>
+                    <MenuItem value="15">15</MenuItem>
                   </Select>
                 </FormControl>
 
@@ -1343,11 +1366,8 @@ function App() {
                     label="Script"
                     onChange={(e) => handleFuturesWebhookFormChange('script', e.target.value)}
                   >
-                    <MenuItem value="DIXON">DIXON</MenuItem>
-                    <MenuItem value="DMART">DMART</MenuItem>
-                    <MenuItem value="NIFTY">NIFTY</MenuItem>
+                    <MenuItem value="LODHA">LODHA</MenuItem>
                     <MenuItem value="POLYCAB">POLYCAB</MenuItem>
-                    <MenuItem value="RVNL">RVNL</MenuItem>
                   </Select>
                 </FormControl>
 
@@ -1359,8 +1379,6 @@ function App() {
                     label="Timeframe"
                     onChange={(e) => handleFuturesWebhookFormChange('timeframe', e.target.value)}
                   >
-                    <MenuItem value="3">3</MenuItem>
-                    <MenuItem value="5">5</MenuItem>
                     <MenuItem value="15">15</MenuItem>
                   </Select>
                 </FormControl>
