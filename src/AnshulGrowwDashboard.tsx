@@ -40,14 +40,11 @@ import {
   Activity,
   BarChart3,
 } from 'lucide-react';
-import { GrowwFuturesPosition, FuturesWebhookRequest } from './config/api';
-import {
-  getGrowwFuturesPositions,
-  closeGrowwPosition,
-  sendFuturesWebhook,
-} from './services/growwService';
+import { API_CONFIG, FuturesTransaction, FuturesWebhookRequest } from './config/api';
+import stockService from './services/stockService';
 
 const drawerWidth = 240;
+const anshulApi = { baseUrl: API_CONFIG.ANSHUL_BASE_URL };
 
 const anshulTheme = createTheme({
   palette: {
@@ -89,20 +86,13 @@ const anshulTheme = createTheme({
   },
 });
 
-function defaultUserIdFromEnv(): number | undefined {
-  const raw = process.env.REACT_APP_GROWW_USER_ID;
-  if (raw == null || raw === '') return undefined;
-  const n = parseInt(raw, 10);
-  return Number.isFinite(n) && n > 0 ? n : undefined;
-}
-
-const GrowwPositionCard: React.FC<{
-  position: GrowwFuturesPosition;
+const FuturesPositionCard: React.FC<{
+  transaction: FuturesTransaction;
   showDateTime?: boolean;
   onExit?: (id: string) => void;
   isExiting?: boolean;
   showStatus?: boolean;
-}> = ({ position, showDateTime = true, onExit, isExiting = false, showStatus = true }) => {
+}> = ({ transaction, showDateTime = true, onExit, isExiting = false, showStatus = true }) => {
   const formatCurrency = (amount: number) =>
     new Intl.NumberFormat('en-IN', {
       style: 'currency',
@@ -119,11 +109,11 @@ const GrowwPositionCard: React.FC<{
       minute: '2-digit',
     });
 
-  const isSell = position.tradeType === 'SELL';
+  const isSell = transaction.trade_type === 'SELL';
   const pnl = isSell
-    ? (position.buyingPrice - position.currentPrice) * position.qty
-    : (position.currentPrice - position.buyingPrice) * position.qty;
-  const denom = position.buyingPrice * position.qty;
+    ? (transaction.buying_price - transaction.current_ltp) * transaction.qty
+    : (transaction.current_ltp - transaction.buying_price) * transaction.qty;
+  const denom = transaction.buying_price * transaction.qty;
   const pnlPercentage = denom !== 0 ? (pnl / denom) * 100 : 0;
 
   return (
@@ -138,38 +128,28 @@ const GrowwPositionCard: React.FC<{
           }}
         >
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Avatar
-              src={position.scriptDetails?.logo}
-              sx={{ width: 40, height: 40 }}
-            >
-              {(position.scriptDetails?.name || position.script).charAt(0)}
+            <Avatar sx={{ width: 40, height: 40, bgcolor: 'primary.main' }}>
+              {transaction.symbol.substring(0, 2)}
             </Avatar>
             <Box>
               <Typography variant="h6" sx={{ fontWeight: 'bold', fontSize: '1.1rem' }}>
-                {position.script}
+                {transaction.symbol}
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                {position.scriptDetails?.name ?? '—'}
-                {position.scriptDetails?.lotSize != null
-                  ? ` • Lot: ${position.scriptDetails.lotSize}`
-                  : ''}
-                {position.tradeType ? ` • ${position.tradeType}` : ''}
+                {transaction.trade_type} • Qty: {transaction.qty}
               </Typography>
-              {position.orderId && (
+              {transaction.order_id && (
                 <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-                  Order: {position.orderId}
+                  Order: {transaction.order_id}
                 </Typography>
               )}
             </Box>
           </Box>
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0.5 }}>
-            {position.broker && (
-              <Chip label={position.broker} size="small" color="success" variant="outlined" />
-            )}
             {showStatus && (
               <Chip
-                label={position.status}
-                color={position.status === 'OPEN' ? 'success' : 'default'}
+                label={transaction.status}
+                color={transaction.status === 'OPEN' ? 'success' : 'default'}
                 size="small"
               />
             )}
@@ -189,7 +169,7 @@ const GrowwPositionCard: React.FC<{
               Quantity
             </Typography>
             <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
-              {position.qty}
+              {transaction.qty}
             </Typography>
           </Box>
           <Box>
@@ -197,7 +177,7 @@ const GrowwPositionCard: React.FC<{
               Buy / ref
             </Typography>
             <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
-              {formatCurrency(position.buyingPrice)}
+              {formatCurrency(transaction.buying_price)}
             </Typography>
           </Box>
           <Box>
@@ -205,7 +185,7 @@ const GrowwPositionCard: React.FC<{
               Current
             </Typography>
             <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
-              {formatCurrency(position.currentPrice)}
+              {formatCurrency(transaction.current_ltp)}
             </Typography>
           </Box>
           <Box>
@@ -242,38 +222,38 @@ const GrowwPositionCard: React.FC<{
               display: 'flex',
               justifyContent: showDateTime ? 'space-between' : 'flex-start',
               alignItems: 'center',
-              mb: position.status === 'OPEN' && onExit ? 2 : 0,
+              mb: transaction.status === 'OPEN' && onExit ? 2 : 0,
             }}
           >
             <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                 <Target size={14} color="#ff9800" />
                 <Typography variant="body2" color="text.secondary">
-                  Target: {formatCurrency(position.target)}
+                  Target: {formatCurrency(transaction.target)}
                 </Typography>
               </Box>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                 <Shield size={14} color="#f44336" />
                 <Typography variant="body2" color="text.secondary">
-                  SL: {formatCurrency(position.stopLoss)}
+                  SL: {formatCurrency(transaction.stop_loss)}
                 </Typography>
               </Box>
             </Box>
             {showDateTime && (
               <Typography variant="body2" color="text.secondary">
-                {formatDate(position.createdAt)}
+                {formatDate(transaction.created_at)}
               </Typography>
             )}
           </Box>
 
-          {position.status === 'OPEN' && onExit && (
+          {transaction.status === 'OPEN' && onExit && (
             <Box sx={{ display: 'flex', justifyContent: 'center', pt: 1 }}>
               <Button
                 variant="contained"
                 color="error"
                 size="small"
                 disabled={isExiting}
-                onClick={() => onExit(position.id)}
+                onClick={() => onExit(transaction.id)}
                 sx={{ minWidth: 80, fontSize: '0.875rem', py: 1, px: 3, borderRadius: 2 }}
               >
                 {isExiting ? (
@@ -298,7 +278,7 @@ type Page = 'active' | 'strategy';
 export default function AnshulGrowwDashboard() {
   const [page, setPage] = useState<Page>('active');
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [positions, setPositions] = useState<GrowwFuturesPosition[]>([]);
+  const [positions, setPositions] = useState<FuturesTransaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [listError, setListError] = useState<string | null>(null);
   const [exiting, setExiting] = useState<Set<string>>(new Set());
@@ -306,12 +286,6 @@ export default function AnshulGrowwDashboard() {
   const [toastOpen, setToastOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [toastSeverity, setToastSeverity] = useState<'success' | 'error'>('success');
-
-  const [userIdInput, setUserIdInput] = useState(() => {
-    const d = defaultUserIdFromEnv();
-    return d != null ? String(d) : '';
-  });
-  const [limitInput, setLimitInput] = useState('200');
 
   const [webhookForm, setWebhookForm] = useState<FuturesWebhookRequest>({
     script: 'LODHA',
@@ -323,31 +297,14 @@ export default function AnshulGrowwDashboard() {
   });
   const [webhookLoading, setWebhookLoading] = useState(false);
 
-  const parseOptionalUserId = (): number | undefined => {
-    const t = userIdInput.trim();
-    if (!t) return undefined;
-    const n = parseInt(t, 10);
-    return Number.isFinite(n) && n > 0 ? n : undefined;
-  };
-
-  const parseLimit = (): number | undefined => {
-    const t = limitInput.trim();
-    if (!t) return undefined;
-    const n = parseInt(t, 10);
-    return Number.isFinite(n) && n > 0 ? n : 200;
-  };
-
   const fetchPositions = async () => {
     setListError(null);
     setLoading(true);
     try {
-      const rows = await getGrowwFuturesPositions({
-        userId: parseOptionalUserId(),
-        limit: parseLimit(),
-      });
-      setPositions(rows);
+      const rows = await stockService.getFuturesTransactions(1, 200, anshulApi);
+      setPositions(rows.filter((row) => row.status === 'OPEN'));
     } catch (e) {
-      setListError(e instanceof Error ? e.message : 'Failed to load GROW positions');
+      setListError(e instanceof Error ? e.message : 'Failed to load futures positions');
       setPositions([]);
     } finally {
       setLoading(false);
@@ -356,16 +313,14 @@ export default function AnshulGrowwDashboard() {
 
   useEffect(() => {
     void fetchPositions();
-    // Intentionally once on mount; drawer filters apply via "Apply & reload" or toolbar refresh.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const openRows = positions.filter((p) => p.status === 'OPEN');
-  const pnlOpen = openRows.reduce((sum, position) => {
-    const isSell = position.tradeType === 'SELL';
+  const pnlOpen = positions.reduce((sum, transaction) => {
+    const isSell = transaction.trade_type === 'SELL';
     const pnl = isSell
-      ? (position.buyingPrice - position.currentPrice) * position.qty
-      : (position.currentPrice - position.buyingPrice) * position.qty;
+      ? (transaction.buying_price - transaction.current_ltp) * transaction.qty
+      : (transaction.current_ltp - transaction.buying_price) * transaction.qty;
     return sum + pnl;
   }, 0);
 
@@ -381,8 +336,8 @@ export default function AnshulGrowwDashboard() {
   const handleClosePosition = async (id: string) => {
     setExiting((prev) => new Set(prev).add(id));
     try {
-      await closeGrowwPosition(id);
-      setToastMessage('GROW position closed successfully');
+      await stockService.closeFuturesOrder(id, anshulApi);
+      setToastMessage('Futures position closed successfully');
       setToastSeverity('success');
       setToastOpen(true);
       await fetchPositions();
@@ -402,7 +357,7 @@ export default function AnshulGrowwDashboard() {
   const handleWebhookSubmit = async () => {
     setWebhookLoading(true);
     try {
-      await sendFuturesWebhook(webhookForm);
+      await stockService.sendFuturesWebhook(webhookForm, anshulApi);
       setToastMessage('Futures webhook sent successfully');
       setToastSeverity('success');
       setToastOpen(true);
@@ -433,7 +388,7 @@ export default function AnshulGrowwDashboard() {
             </ListItemIcon>
             <ListItemText
               primary="Active positions"
-              secondary={`${openRows.length} open`}
+              secondary={`${positions.length} open`}
               secondaryTypographyProps={{ variant: 'caption' }}
             />
           </ListItemButton>
@@ -447,30 +402,6 @@ export default function AnshulGrowwDashboard() {
           </ListItemButton>
         </ListItem>
       </List>
-      <Box sx={{ px: 2, py: 2, borderTop: '1px solid #eee' }}>
-        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
-          List API query (optional)
-        </Typography>
-        <TextField
-          fullWidth
-          size="small"
-          label="User ID"
-          placeholder="Empty = all GROW users"
-          value={userIdInput}
-          onChange={(e) => setUserIdInput(e.target.value)}
-          sx={{ mb: 1.5 }}
-        />
-        <TextField
-          fullWidth
-          size="small"
-          label="Limit"
-          value={limitInput}
-          onChange={(e) => setLimitInput(e.target.value)}
-        />
-        <Button fullWidth variant="outlined" size="small" sx={{ mt: 1.5 }} onClick={() => void fetchPositions()}>
-          Apply &amp; reload
-        </Button>
-      </Box>
       <Box sx={{ px: 2, pb: 2 }}>
         <Typography
           component={Link}
@@ -578,21 +509,21 @@ export default function AnshulGrowwDashboard() {
                 <Box sx={{ textAlign: 'center', py: 6 }}>
                   <Activity size={40} color="#bdbdbd" style={{ marginBottom: 8 }} />
                   <Typography variant="h6" color="text.secondary">
-                    No GROW positions
+                    No open futures positions
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    Adjust user filter or open Strategy config to send a signal.
+                    Open Strategy config to send a signal.
                   </Typography>
                 </Box>
               ) : (
-                positions.map((p) => (
-                  <GrowwPositionCard
-                    key={p.id}
-                    position={p}
+                positions.map((transaction) => (
+                  <FuturesPositionCard
+                    key={transaction.id}
+                    transaction={transaction}
                     showDateTime
                     showStatus
                     onExit={handleClosePosition}
-                    isExiting={exiting.has(p.id)}
+                    isExiting={exiting.has(transaction.id)}
                   />
                 ))
               )}
@@ -607,7 +538,7 @@ export default function AnshulGrowwDashboard() {
               <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
                 Sends a futures webhook (same as the main dashboard): POST{' '}
                 <Box component="span" sx={{ fontFamily: 'monospace', fontSize: '0.8rem' }}>/api/futures/webhook</Box> on{' '}
-                <Box component="span" sx={{ fontFamily: 'monospace', fontSize: '0.8rem' }}>gotecha.shop</Box>.
+                <Box component="span" sx={{ fontFamily: 'monospace', fontSize: '0.8rem' }}>anshul.gotecha.shop</Box>.
               </Typography>
 
               <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 2, mb: 2 }}>

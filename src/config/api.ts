@@ -2,6 +2,7 @@
 export const API_CONFIG = {
   BASE_URL: 'https://trade.durgaimpexmfu.in',
   NEW_BASE_URL: 'https://gotecha.shop',
+  ANSHUL_BASE_URL: 'https://anshul.gotecha.shop',
   ENDPOINTS: {
     STOCKS: '/api/equity/stocks',
     LTP: '/api/equity/ltp', // LTP endpoint base
@@ -16,9 +17,6 @@ export const API_CONFIG = {
     FUTURES_TRANSACTIONS: '/api/futures/transactions', // Futures transactions endpoint
     FUTURES_CLOSE_POSITION: '/api/futures/close-position', // Futures close position endpoint (ID in URL)
     FUTURES_PNL: '/api/futures/pnl', // Futures P&L endpoint
-    // Groww (GROW broker) futures — used by Anshul dashboard at /anshul
-    GROWW_FUTURES_USER_TRANSACTIONS: '/groww/futures/user-transactions',
-    GROWW_FUTURES_CLOSE_POSITION: '/groww/futures/close-position',
   }
 };
 
@@ -145,20 +143,6 @@ export interface UserTransaction {
 }
 
 export type UserTransactionsResponse = UserTransaction[];
-
-/** GROW futures row from GET /groww/futures/user-transactions (camelCase, same core shape as options UserTransaction). */
-export interface GrowwFuturesPosition extends UserTransaction {
-  tradeType?: string;
-  orderId?: string;
-  broker?: string;
-}
-
-export interface GrowwClosePositionResponse {
-  success: boolean;
-  message: string;
-  transaction_id?: number;
-  selling_price?: number;
-}
 
 // Close Order API Types
 export interface CloseOrderRequest {

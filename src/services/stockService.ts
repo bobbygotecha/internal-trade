@@ -244,9 +244,13 @@ class StockService {
   // ===== FUTURES TRADING METHODS =====
 
   // Send futures webhook
-  async sendFuturesWebhook(webhookData: FuturesWebhookRequest): Promise<FuturesWebhookResponse> {
+  async sendFuturesWebhook(
+    webhookData: FuturesWebhookRequest,
+    options?: { baseUrl?: string }
+  ): Promise<FuturesWebhookResponse> {
     try {
-      const response = await fetch(`${API_CONFIG.NEW_BASE_URL}${API_CONFIG.ENDPOINTS.FUTURES_WEBHOOK}`, {
+      const apiBaseUrl = options?.baseUrl ?? API_CONFIG.NEW_BASE_URL;
+      const response = await fetch(`${apiBaseUrl}${API_CONFIG.ENDPOINTS.FUTURES_WEBHOOK}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -272,9 +276,22 @@ class StockService {
   }
 
   // Get futures transactions
-  async getFuturesTransactions(userId: number = 1, limit: number = 100): Promise<FuturesTransaction[]> {
+  async getFuturesTransactions(
+    userId?: number,
+    limit: number = 100,
+    options?: { baseUrl?: string }
+  ): Promise<FuturesTransaction[]> {
     try {
-      const url = `${API_CONFIG.NEW_BASE_URL}${API_CONFIG.ENDPOINTS.FUTURES_TRANSACTIONS}?user_id=${userId}&limit=${limit}`;
+      const apiBaseUrl = options?.baseUrl ?? API_CONFIG.NEW_BASE_URL;
+      const qs = new URLSearchParams();
+      if (userId != null && userId > 0) {
+        qs.set('user_id', String(userId));
+      }
+      if (limit > 0) {
+        qs.set('limit', String(limit));
+      }
+      const query = qs.toString();
+      const url = `${apiBaseUrl}${API_CONFIG.ENDPOINTS.FUTURES_TRANSACTIONS}${query ? `?${query}` : ''}`;
       const response = await fetch(url, {
         method: 'GET',
         headers: {
@@ -300,9 +317,13 @@ class StockService {
   }
 
   // Close futures position
-  async closeFuturesOrder(transactionId: string): Promise<FuturesCloseOrderResponse> {
+  async closeFuturesOrder(
+    transactionId: string,
+    options?: { baseUrl?: string }
+  ): Promise<FuturesCloseOrderResponse> {
     try {
-      const response = await fetch(`${API_CONFIG.NEW_BASE_URL}${API_CONFIG.ENDPOINTS.FUTURES_CLOSE_POSITION}/${transactionId}`, {
+      const apiBaseUrl = options?.baseUrl ?? API_CONFIG.NEW_BASE_URL;
+      const response = await fetch(`${apiBaseUrl}${API_CONFIG.ENDPOINTS.FUTURES_CLOSE_POSITION}/${transactionId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
