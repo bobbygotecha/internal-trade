@@ -45,6 +45,7 @@ import stockService from './services/stockService';
 
 const drawerWidth = 240;
 const anshulApi = { baseUrl: API_CONFIG.ANSHUL_BASE_URL };
+const anshulUserId = 3;
 
 const anshulTheme = createTheme({
   palette: {
@@ -301,7 +302,7 @@ export default function AnshulGrowwDashboard() {
     setListError(null);
     setLoading(true);
     try {
-      const rows = await stockService.getFuturesTransactions(1, 200, anshulApi);
+      const rows = await stockService.getFuturesTransactions(anshulUserId, 200, anshulApi);
       setPositions(rows.filter((row) => row.status === 'OPEN'));
     } catch (e) {
       setListError(e instanceof Error ? e.message : 'Failed to load futures positions');
