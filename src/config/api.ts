@@ -3,6 +3,7 @@ export const API_CONFIG = {
   BASE_URL: 'https://trade.durgaimpexmfu.in',
   NEW_BASE_URL: 'https://gotecha.shop',
   ANSHUL_BASE_URL: 'https://anshul.gotecha.shop',
+  HIMANSHU_BASE_URL: 'https://himanshu.gotecha.shop',
   ENDPOINTS: {
     STOCKS: '/api/equity/stocks',
     LTP: '/api/equity/ltp', // LTP endpoint base

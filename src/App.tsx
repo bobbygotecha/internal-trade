@@ -854,7 +854,7 @@ function App() {
                 </ListItemButton>
               </ListItem>
             </List>
-            <Box sx={{ px: 2, py: 2, borderTop: '1px solid #e0e0e0' }}>
+            <Box sx={{ px: 2, py: 2, borderTop: '1px solid #e0e0e0', display: 'flex', flexDirection: 'column', gap: 0.5 }}>
               <Typography
                 component={Link}
                 to="/anshul"
@@ -865,6 +865,17 @@ function App() {
                 sx={{ color: 'primary.main', textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}
               >
                 GROW · Anshul →
+              </Typography>
+              <Typography
+                component={Link}
+                to="/himanshu"
+                variant="body2"
+                onClick={() => {
+                  if (isMobile) handleDrawerToggle();
+                }}
+                sx={{ color: 'primary.main', textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}
+              >
+                GROW · Himanshu →
               </Typography>
             </Box>
           </Drawer>
@@ -984,7 +995,7 @@ function App() {
                 </ListItemButton>
               </ListItem>
             </List>
-            <Box sx={{ px: 2, py: 2, borderTop: '1px solid #e0e0e0' }}>
+            <Box sx={{ px: 2, py: 2, borderTop: '1px solid #e0e0e0', display: 'flex', flexDirection: 'column', gap: 0.5 }}>
               <Typography
                 component={Link}
                 to="/anshul"
@@ -992,6 +1003,14 @@ function App() {
                 sx={{ color: 'primary.main', textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}
               >
                 GROW · Anshul →
+              </Typography>
+              <Typography
+                component={Link}
+                to="/himanshu"
+                variant="body2"
+                sx={{ color: 'primary.main', textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}
+              >
+                GROW · Himanshu →
               </Typography>
             </Box>
           </Drawer>
